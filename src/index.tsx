@@ -4,6 +4,7 @@ import { renderer } from './renderer'
 import { TopPage } from './pages/top'
 import { SelectAgePage } from './pages/select-age'
 import { SelectLocationPage } from './pages/select-location'
+import { SearchFacilityPage } from './pages/search-facility'
 
 const app = new Hono()
 
@@ -22,6 +23,11 @@ app.get('/select-age', (c) => {
 // 地点情報選択画面
 app.get('/select-location', (c) => {
   return c.render(<SelectLocationPage />)
+})
+
+// 施設名検索画面
+app.get('/search-facility', (c) => {
+  return c.render(<SearchFacilityPage />)
 })
 
 // ゆめまち提案の種類選択画面（プレースホルダー）

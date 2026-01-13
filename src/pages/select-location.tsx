@@ -312,6 +312,10 @@ const inlineScript = `
           showAddressContainer();
           updateSelection();
           break;
+        case 'facility':
+          // 施設名検索画面に遷移
+          window.location.href = '/search-facility';
+          return;
         default:
           updateSelection();
       }
