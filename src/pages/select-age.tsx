@@ -48,6 +48,11 @@ export const SelectAgePage: FC = () => {
         >
           🏠 家族みんなで
         </button>
+
+        {/* 注釈 */}
+        <p class="text-sm text-gray-500 text-center mt-2">
+          ※「家族みんなで」を選択した場合は、複数の年齢を指定できます。
+        </p>
       </div>
 
       {/* 次へボタン */}
