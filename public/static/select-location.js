@@ -1,5 +1,5 @@
 // 地点情報選択画面のメインロジック
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   let selectedLocation = null;
   let currentPosition = null;
   let selectedPlace = null;
@@ -14,6 +14,12 @@
   const gpsErrorMessage = document.getElementById('gps-error-message');
   const selectedPlaceInfo = document.getElementById('selected-place-info');
   const selectedPlaceName = document.getElementById('selected-place-name');
+
+  // 要素の存在チェック
+  if (!addressContainer) {
+    console.error('address-container not found');
+    return;
+  }
 
   // 選択状態の更新
   function updateSelection() {
@@ -51,32 +57,34 @@
 
   // 地図コンテナの表示/非表示
   function showMapContainer() {
-    mapContainer.classList.remove('hidden');
+    if (mapContainer) mapContainer.classList.remove('hidden');
   }
 
   function hideMapContainer() {
-    mapContainer.classList.add('hidden');
-    window.MapUtils.destroy();
+    if (mapContainer) mapContainer.classList.add('hidden');
+    if (window.MapUtils) window.MapUtils.destroy();
     hideSelectedPlaceInfo();
   }
 
   // 住所コンテナの表示/非表示
   function showAddressContainer() {
-    addressContainer.classList.remove('hidden');
-    addressBtns.forEach(b => updateButtonStyle(b, false));
+    if (addressContainer) {
+      addressContainer.classList.remove('hidden');
+      addressBtns.forEach(b => updateButtonStyle(b, false));
+    }
   }
 
   function hideAddressContainer() {
-    addressContainer.classList.add('hidden');
+    if (addressContainer) addressContainer.classList.add('hidden');
   }
 
   // エラーメッセージの表示/非表示
   function showErrorMessage() {
-    gpsErrorMessage.classList.remove('hidden');
+    if (gpsErrorMessage) gpsErrorMessage.classList.remove('hidden');
   }
 
   function hideErrorMessage() {
-    gpsErrorMessage.classList.add('hidden');
+    if (gpsErrorMessage) gpsErrorMessage.classList.add('hidden');
   }
 
   // 現在地の地図表示
@@ -84,8 +92,10 @@
     showMapContainer();
     hideSelectedPlaceInfo();
     setTimeout(() => {
-      window.MapUtils.init('map', lat, lng, 15);
-      window.MapUtils.addMarker(lat, lng, '📍 現在地', true);
+      if (window.MapUtils) {
+        window.MapUtils.init('map', lat, lng, 15);
+        window.MapUtils.addMarker(lat, lng, '📍 現在地', true);
+      }
     }, 100);
   }
 
@@ -97,37 +107,43 @@
     
     setTimeout(() => {
       const spots = window.KawanishiSpots;
-      const centerLat = (spots[0].lat + spots[1].lat) / 2;
-      const centerLng = (spots[0].lng + spots[1].lng) / 2;
-      
-      window.MapUtils.init('map', centerLat, centerLng, 13);
-      spots.forEach(spot => {
-        window.MapUtils.addSelectableMarker(spot, 'window.selectSpot');
-      });
+      if (spots && window.MapUtils) {
+        const centerLat = (spots[0].lat + spots[1].lat) / 2;
+        const centerLng = (spots[0].lng + spots[1].lng) / 2;
+        
+        window.MapUtils.init('map', centerLat, centerLng, 13);
+        spots.forEach(spot => {
+          window.MapUtils.addSelectableMarker(spot, 'window.selectSpot');
+        });
+      }
     }, 100);
   }
 
   // スポット選択（グローバル関数）
   window.selectSpot = function(spotId) {
-    const spot = window.findSpotById(spotId);
+    const spot = window.findSpotById ? window.findSpotById(spotId) : null;
     if (spot) {
       selectedPlace = spot;
       currentPosition = { lat: spot.lat, lng: spot.lng };
       showSelectedPlaceInfo(spot.name);
       updateSelection();
-      window.MapUtils.closePopup();
+      if (window.MapUtils) window.MapUtils.closePopup();
     }
   };
 
   // GPS取得
   function getCurrentPosition() {
-    gpsStatus.textContent = '取得中...';
-    gpsStatus.classList.remove('text-green-500', 'text-red-500');
-    gpsStatus.classList.add('text-gray-400');
+    if (gpsStatus) {
+      gpsStatus.textContent = '取得中...';
+      gpsStatus.classList.remove('text-green-500', 'text-red-500');
+      gpsStatus.classList.add('text-gray-400');
+    }
 
     if (!navigator.geolocation) {
-      gpsStatus.textContent = '非対応';
-      gpsStatus.classList.add('text-red-500');
+      if (gpsStatus) {
+        gpsStatus.textContent = '非対応';
+        gpsStatus.classList.add('text-red-500');
+      }
       showErrorMessage();
       selectedLocation = null;
       updateSelection();
@@ -139,9 +155,11 @@
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         currentPosition = { lat, lng };
-        gpsStatus.textContent = '✓ 取得完了';
-        gpsStatus.classList.remove('text-gray-400');
-        gpsStatus.classList.add('text-green-500');
+        if (gpsStatus) {
+          gpsStatus.textContent = '✓ 取得完了';
+          gpsStatus.classList.remove('text-gray-400');
+          gpsStatus.classList.add('text-green-500');
+        }
         showCurrentLocationMap(lat, lng);
         updateSelection();
       },
@@ -151,9 +169,11 @@
           2: '取得できません',
           3: 'タイムアウト'
         };
-        gpsStatus.textContent = messages[error.code] || 'エラー';
-        gpsStatus.classList.remove('text-gray-400');
-        gpsStatus.classList.add('text-red-500');
+        if (gpsStatus) {
+          gpsStatus.textContent = messages[error.code] || 'エラー';
+          gpsStatus.classList.remove('text-gray-400');
+          gpsStatus.classList.add('text-red-500');
+        }
         showErrorMessage();
         selectedLocation = null;
         updateSelection();
@@ -168,7 +188,7 @@
     hideAddressContainer();
     hideErrorMessage();
     hideSelectedPlaceInfo();
-    gpsStatus.textContent = '';
+    if (gpsStatus) gpsStatus.textContent = '';
     selectedPlace = null;
     currentPosition = null;
   }
@@ -203,7 +223,7 @@
   // 住所ボタンのクリック処理
   addressBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-      const spot = window.findSpotById(this.dataset.addressId);
+      const spot = window.findSpotById ? window.findSpotById(this.dataset.addressId) : null;
       if (spot) {
         addressBtns.forEach(b => updateButtonStyle(b, false));
         updateButtonStyle(this, true);
@@ -216,13 +236,15 @@
   });
 
   // 次へボタンのクリック処理
-  nextBtn.addEventListener('click', function() {
-    if (this.disabled) return;
-    sessionStorage.setItem('userLocation', JSON.stringify({
-      type: selectedLocation,
-      position: currentPosition,
-      place: selectedPlace
-    }));
-    window.location.href = '/select-category';
-  });
-})();
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function() {
+      if (this.disabled) return;
+      sessionStorage.setItem('userLocation', JSON.stringify({
+        type: selectedLocation,
+        position: currentPosition,
+        place: selectedPlace
+      }));
+      window.location.href = '/select-category';
+    });
+  }
+});
