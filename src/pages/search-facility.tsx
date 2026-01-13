@@ -141,7 +141,12 @@ const inlineScript = `
 
 export const SearchFacilityPage: FC = () => {
   return (
-    <div class="min-h-screen bg-gradient-to-b from-pink-100 via-purple-100 to-blue-100 flex flex-col p-6 font-maru">
+    <div class="min-h-screen bg-gradient-to-b from-pink-100 via-purple-100 to-blue-100 flex flex-col p-6 font-maru relative">
+      {/* 画面名（右端に縦書き） */}
+      <div class="absolute right-1 top-1/2 transform -translate-y-1/2">
+        <p class="text-xs text-gray-400 writing-mode-vertical">施設名検索画面</p>
+      </div>
+
       {/* ヘッダー */}
       <div class="mb-6">
         <h1 class="text-xl font-bold text-purple-600 flex items-center gap-2">
@@ -199,11 +204,27 @@ export const SearchFacilityPage: FC = () => {
         </div>
       </div>
 
+      {/* 注釈 */}
+      <div class="mt-4 p-3 bg-white/50 rounded-xl">
+        <p class="text-xs text-gray-500">
+          ※現時点では、以下の２つとしています。<br />
+          　川西能勢口前ロータリー、多田神社前猪名川渓流
+        </p>
+      </div>
+
       {/* ナビゲーション */}
       <Navigation backHref="/select-location" nextDisabled={true} />
 
       {/* インラインJavaScript */}
       <script dangerouslySetInnerHTML={{ __html: inlineScript }} />
+
+      {/* 縦書き用スタイル */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .writing-mode-vertical {
+          writing-mode: vertical-rl;
+          text-orientation: mixed;
+        }
+      `}} />
     </div>
   )
 }
