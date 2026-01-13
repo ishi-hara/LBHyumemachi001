@@ -1,29 +1,10 @@
-// 地点情報選択画面のJavaScript
+// 地点情報選択画面のメインロジック
 (function() {
   let selectedLocation = null;
   let currentPosition = null;
   let selectedPlace = null;
-  let map = null;
-  let markers = [];
 
-  // 川西市のスポットデータ
-  const kawanishiSpots = [
-    {
-      id: 'kawanishi-noseguchi',
-      name: '川西能勢口前ロータリー',
-      address: '〒666-0033 兵庫県川西市栄町20-1',
-      lat: 34.8267,
-      lng: 135.4158
-    },
-    {
-      id: 'tada-shrine',
-      name: '多田神社前猪名川渓流',
-      address: '〒666-0251 兵庫県川辺郡猪名川町多田',
-      lat: 34.8589,
-      lng: 135.3856
-    }
-  ];
-
+  // DOM要素
   const locationBtns = document.querySelectorAll('.location-btn');
   const addressBtns = document.querySelectorAll('.address-btn');
   const nextBtn = document.getElementById('next-btn');
@@ -45,7 +26,7 @@
     }
   }
 
-  // ボタンの見た目を更新
+  // ボタンスタイル更新
   function updateButtonStyle(btn, isSelected) {
     if (isSelected) {
       btn.classList.add('border-purple-500', 'bg-purple-50');
@@ -56,87 +37,7 @@
     }
   }
 
-  // マーカーをクリア
-  function clearMarkers() {
-    markers.forEach(m => {
-      if (map) map.removeLayer(m);
-    });
-    markers = [];
-  }
-
-  // 現在地の地図を表示
-  function showCurrentLocationMap(lat, lng) {
-    mapContainer.classList.remove('hidden');
-    hideSelectedPlaceInfo();
-    
-    setTimeout(() => {
-      if (map) {
-        map.remove();
-        map = null;
-      }
-      
-      map = L.map('map').setView([lat, lng], 15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-      }).addTo(map);
-      
-      const marker = L.marker([lat, lng]).addTo(map)
-        .bindPopup('📍 現在地')
-        .openPopup();
-      markers.push(marker);
-    }, 100);
-  }
-
-  // 川西市の地図を表示（2箇所のマーカー付き）
-  function showKawanishiMap() {
-    mapContainer.classList.remove('hidden');
-    selectedPlace = null;
-    hideSelectedPlaceInfo();
-    
-    setTimeout(() => {
-      if (map) {
-        map.remove();
-        map = null;
-      }
-      
-      const centerLat = (kawanishiSpots[0].lat + kawanishiSpots[1].lat) / 2;
-      const centerLng = (kawanishiSpots[0].lng + kawanishiSpots[1].lng) / 2;
-      
-      map = L.map('map').setView([centerLat, centerLng], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-      }).addTo(map);
-      
-      kawanishiSpots.forEach(spot => {
-        const marker = L.marker([spot.lat, spot.lng]).addTo(map);
-        marker.bindPopup(
-          '<div style="text-align:center;min-width:120px;">' +
-          '<b>' + spot.name + '</b><br>' +
-          '<button onclick="window.selectSpot(\'' + spot.id + '\')" ' +
-          'style="margin-top:8px;padding:6px 12px;background:linear-gradient(to right,#f472b6,#a855f7);color:white;border:none;border-radius:20px;cursor:pointer;font-weight:bold;">' +
-          'ここに決める</button>' +
-          '</div>'
-        );
-        markers.push(marker);
-      });
-    }, 100);
-  }
-
-  // 住所選択エリアを表示
-  function showAddressSelection() {
-    addressContainer.classList.remove('hidden');
-    selectedPlace = null;
-    hideSelectedPlaceInfo();
-    // 住所ボタンの選択状態をリセット
-    addressBtns.forEach(b => updateButtonStyle(b, false));
-  }
-
-  // 住所選択エリアを非表示
-  function hideAddressSelection() {
-    addressContainer.classList.add('hidden');
-  }
-
-  // 選択された場所の情報を表示
+  // 選択場所情報の表示/非表示
   function showSelectedPlaceInfo(name) {
     if (selectedPlaceInfo && selectedPlaceName) {
       selectedPlaceName.textContent = name;
@@ -144,45 +45,79 @@
     }
   }
 
-  // 選択された場所の情報を非表示
   function hideSelectedPlaceInfo() {
-    if (selectedPlaceInfo) {
-      selectedPlaceInfo.classList.add('hidden');
-    }
+    if (selectedPlaceInfo) selectedPlaceInfo.classList.add('hidden');
   }
 
-  // スポット選択（グローバル関数として公開）
+  // 地図コンテナの表示/非表示
+  function showMapContainer() {
+    mapContainer.classList.remove('hidden');
+  }
+
+  function hideMapContainer() {
+    mapContainer.classList.add('hidden');
+    window.MapUtils.destroy();
+    hideSelectedPlaceInfo();
+  }
+
+  // 住所コンテナの表示/非表示
+  function showAddressContainer() {
+    addressContainer.classList.remove('hidden');
+    addressBtns.forEach(b => updateButtonStyle(b, false));
+  }
+
+  function hideAddressContainer() {
+    addressContainer.classList.add('hidden');
+  }
+
+  // エラーメッセージの表示/非表示
+  function showErrorMessage() {
+    gpsErrorMessage.classList.remove('hidden');
+  }
+
+  function hideErrorMessage() {
+    gpsErrorMessage.classList.add('hidden');
+  }
+
+  // 現在地の地図表示
+  function showCurrentLocationMap(lat, lng) {
+    showMapContainer();
+    hideSelectedPlaceInfo();
+    setTimeout(() => {
+      window.MapUtils.init('map', lat, lng, 15);
+      window.MapUtils.addMarker(lat, lng, '📍 現在地', true);
+    }, 100);
+  }
+
+  // 川西市の地図表示
+  function showKawanishiMap() {
+    showMapContainer();
+    selectedPlace = null;
+    hideSelectedPlaceInfo();
+    
+    setTimeout(() => {
+      const spots = window.KawanishiSpots;
+      const centerLat = (spots[0].lat + spots[1].lat) / 2;
+      const centerLng = (spots[0].lng + spots[1].lng) / 2;
+      
+      window.MapUtils.init('map', centerLat, centerLng, 13);
+      spots.forEach(spot => {
+        window.MapUtils.addSelectableMarker(spot, 'window.selectSpot');
+      });
+    }, 100);
+  }
+
+  // スポット選択（グローバル関数）
   window.selectSpot = function(spotId) {
-    const spot = kawanishiSpots.find(s => s.id === spotId);
+    const spot = window.findSpotById(spotId);
     if (spot) {
       selectedPlace = spot;
       currentPosition = { lat: spot.lat, lng: spot.lng };
       showSelectedPlaceInfo(spot.name);
       updateSelection();
-      if (map) map.closePopup();
+      window.MapUtils.closePopup();
     }
   };
-
-  // 地図を非表示
-  function hideMap() {
-    mapContainer.classList.add('hidden');
-    clearMarkers();
-    hideSelectedPlaceInfo();
-    if (map) {
-      map.remove();
-      map = null;
-    }
-  }
-
-  // エラーメッセージを表示
-  function showErrorMessage() {
-    gpsErrorMessage.classList.remove('hidden');
-  }
-
-  // エラーメッセージを非表示
-  function hideErrorMessage() {
-    gpsErrorMessage.classList.add('hidden');
-  }
 
   // GPS取得
   function getCurrentPosition() {
@@ -204,110 +139,74 @@
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         currentPosition = { lat, lng };
-        
         gpsStatus.textContent = '✓ 取得完了';
         gpsStatus.classList.remove('text-gray-400');
         gpsStatus.classList.add('text-green-500');
-        
         showCurrentLocationMap(lat, lng);
         updateSelection();
       },
       (error) => {
-        let message = 'エラー';
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            message = '許可されていません';
-            break;
-          case error.POSITION_UNAVAILABLE:
-            message = '取得できません';
-            break;
-          case error.TIMEOUT:
-            message = 'タイムアウト';
-            break;
-        }
-        gpsStatus.textContent = message;
+        const messages = {
+          1: '許可されていません',
+          2: '取得できません',
+          3: 'タイムアウト'
+        };
+        gpsStatus.textContent = messages[error.code] || 'エラー';
         gpsStatus.classList.remove('text-gray-400');
         gpsStatus.classList.add('text-red-500');
         showErrorMessage();
         selectedLocation = null;
         updateSelection();
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
+  }
+
+  // 全てをリセット
+  function resetAll() {
+    hideMapContainer();
+    hideAddressContainer();
+    hideErrorMessage();
+    hideSelectedPlaceInfo();
+    gpsStatus.textContent = '';
+    selectedPlace = null;
+    currentPosition = null;
   }
 
   // 地点ボタンのクリック処理
   locationBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       const locationId = this.dataset.locationId;
-
-      // 全ボタンの選択状態をリセット
       locationBtns.forEach(b => updateButtonStyle(b, false));
-      hideErrorMessage();
-      gpsStatus.textContent = '';
-      
-      // 現在地が選択された場合
-      if (locationId === 'current') {
-        hideMap();
-        hideAddressSelection();
-        selectedPlace = null;
-        currentPosition = null;
-        selectedLocation = locationId;
-        updateButtonStyle(this, true);
-        getCurrentPosition();
-        return;
-      }
-      
-      // 地図から選ぶが選択された場合
-      if (locationId === 'map') {
-        hideAddressSelection();
-        selectedPlace = null;
-        currentPosition = null;
-        selectedLocation = locationId;
-        updateButtonStyle(this, true);
-        showKawanishiMap();
-        updateSelection();
-        return;
-      }
-
-      // 住所から選ぶが選択された場合
-      if (locationId === 'address') {
-        hideMap();
-        selectedPlace = null;
-        currentPosition = null;
-        selectedLocation = locationId;
-        updateButtonStyle(this, true);
-        showAddressSelection();
-        updateSelection();
-        return;
-      }
-      
-      // その他が選択された場合
-      hideMap();
-      hideAddressSelection();
-      selectedPlace = null;
-      currentPosition = null;
+      resetAll();
       selectedLocation = locationId;
       updateButtonStyle(this, true);
-      updateSelection();
+
+      switch(locationId) {
+        case 'current':
+          getCurrentPosition();
+          break;
+        case 'map':
+          showKawanishiMap();
+          updateSelection();
+          break;
+        case 'address':
+          showAddressContainer();
+          updateSelection();
+          break;
+        default:
+          updateSelection();
+      }
     });
   });
 
   // 住所ボタンのクリック処理
   addressBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-      const addressId = this.dataset.addressId;
-      const spot = kawanishiSpots.find(s => s.id === addressId);
-      
+      const spot = window.findSpotById(this.dataset.addressId);
       if (spot) {
-        // 住所ボタンの選択状態を更新
         addressBtns.forEach(b => updateButtonStyle(b, false));
         updateButtonStyle(this, true);
-        
         selectedPlace = spot;
         currentPosition = { lat: spot.lat, lng: spot.lng };
         showSelectedPlaceInfo(spot.name);
@@ -319,14 +218,11 @@
   // 次へボタンのクリック処理
   nextBtn.addEventListener('click', function() {
     if (this.disabled) return;
-
-    const data = {
+    sessionStorage.setItem('userLocation', JSON.stringify({
       type: selectedLocation,
       position: currentPosition,
       place: selectedPlace
-    };
-    sessionStorage.setItem('userLocation', JSON.stringify(data));
-
+    }));
     window.location.href = '/select-category';
   });
 })();

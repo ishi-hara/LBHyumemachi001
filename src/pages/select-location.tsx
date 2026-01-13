@@ -106,6 +106,8 @@ export const SelectLocationPage: FC = () => {
       <Navigation backHref="/select-age" nextDisabled={true} />
 
       {/* JavaScript（外部ファイル） */}
+      <script src="/static/spots-data.js"></script>
+      <script src="/static/map-utils.js"></script>
       <script src="/static/select-location.js"></script>
     </div>
   )
