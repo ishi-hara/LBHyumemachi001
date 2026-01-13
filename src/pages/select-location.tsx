@@ -47,7 +47,15 @@ export const SelectLocationPage: FC = () => {
 
       {/* 地図表示エリア（初期は非表示） */}
       <div id="map-container" class="hidden mt-4">
-        <div id="map" class="w-full h-48 rounded-xl shadow-md z-0"></div>
+        <div id="map" class="w-full h-56 rounded-xl shadow-md z-0"></div>
+      </div>
+
+      {/* 選択された場所の表示（初期は非表示） */}
+      <div id="selected-place-info" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+        <p class="text-sm text-green-700 flex items-center gap-2">
+          <span>✅</span>
+          <span>選択中: <strong id="selected-place-name"></strong></span>
+        </p>
       </div>
 
       {/* GPSエラー時のメッセージ（初期は非表示） */}
@@ -75,181 +83,8 @@ export const SelectLocationPage: FC = () => {
       {/* ナビゲーション */}
       <Navigation backHref="/select-age" nextDisabled={true} />
 
-      {/* JavaScript */}
-      <script dangerouslySetInnerHTML={{ __html: `
-        (function() {
-          let selectedLocation = null;
-          let currentPosition = null;
-          let map = null;
-          let marker = null;
-
-          const locationBtns = document.querySelectorAll('.location-btn');
-          const nextBtn = document.getElementById('next-btn');
-          const mapContainer = document.getElementById('map-container');
-          const gpsStatus = document.getElementById('gps-status');
-          const gpsErrorMessage = document.getElementById('gps-error-message');
-
-          // 選択状態の更新
-          function updateSelection() {
-            nextBtn.disabled = !selectedLocation;
-          }
-
-          // ボタンの見た目を更新
-          function updateButtonStyle(btn, isSelected) {
-            if (isSelected) {
-              btn.classList.add('border-purple-500', 'bg-purple-50');
-              btn.classList.remove('border-transparent', 'bg-white');
-            } else {
-              btn.classList.remove('border-purple-500', 'bg-purple-50');
-              btn.classList.add('border-transparent', 'bg-white');
-            }
-          }
-
-          // 地図を表示
-          function showMap(lat, lng) {
-            mapContainer.classList.remove('hidden');
-            
-            // 少し待ってから地図を初期化（DOMが表示されてから）
-            setTimeout(() => {
-              if (map) {
-                map.setView([lat, lng], 15);
-                if (marker) {
-                  marker.setLatLng([lat, lng]);
-                } else {
-                  marker = L.marker([lat, lng]).addTo(map);
-                }
-              } else {
-                map = L.map('map').setView([lat, lng], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                  attribution: '© OpenStreetMap'
-                }).addTo(map);
-                marker = L.marker([lat, lng]).addTo(map)
-                  .bindPopup('📍 現在地')
-                  .openPopup();
-              }
-            }, 100);
-          }
-
-          // 地図を非表示
-          function hideMap() {
-            mapContainer.classList.add('hidden');
-          }
-
-          // エラーメッセージを表示
-          function showErrorMessage() {
-            gpsErrorMessage.classList.remove('hidden');
-          }
-
-          // エラーメッセージを非表示
-          function hideErrorMessage() {
-            gpsErrorMessage.classList.add('hidden');
-          }
-
-          // GPS取得
-          function getCurrentPosition() {
-            gpsStatus.textContent = '取得中...';
-            gpsStatus.classList.remove('text-green-500', 'text-red-500');
-            gpsStatus.classList.add('text-gray-400');
-
-            if (!navigator.geolocation) {
-              gpsStatus.textContent = '非対応';
-              gpsStatus.classList.add('text-red-500');
-              showErrorMessage();
-              selectedLocation = null;
-              updateSelection();
-              return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-              // 成功
-              (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                currentPosition = { lat, lng };
-                
-                gpsStatus.textContent = '✓ 取得完了';
-                gpsStatus.classList.remove('text-gray-400');
-                gpsStatus.classList.add('text-green-500');
-                
-                showMap(lat, lng);
-                updateSelection();
-              },
-              // エラー
-              (error) => {
-                let message = 'エラー';
-                switch(error.code) {
-                  case error.PERMISSION_DENIED:
-                    message = '許可されていません';
-                    break;
-                  case error.POSITION_UNAVAILABLE:
-                    message = '取得できません';
-                    break;
-                  case error.TIMEOUT:
-                    message = 'タイムアウト';
-                    break;
-                }
-                gpsStatus.textContent = message;
-                gpsStatus.classList.remove('text-gray-400');
-                gpsStatus.classList.add('text-red-500');
-                showErrorMessage();
-                selectedLocation = null;
-                updateSelection();
-              },
-              // オプション
-              {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-              }
-            );
-          }
-
-          // 地点ボタンのクリック処理
-          locationBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-              const locationId = this.dataset.locationId;
-
-              // 全ボタンの選択状態をリセット
-              locationBtns.forEach(b => updateButtonStyle(b, false));
-              
-              // 現在地以外が選択された場合
-              if (locationId !== 'current') {
-                hideMap();
-                hideErrorMessage();
-                gpsStatus.textContent = '';
-                currentPosition = null;
-                selectedLocation = locationId;
-                updateButtonStyle(this, true);
-                updateSelection();
-                return;
-              }
-
-              // 現在地選択時はエラーメッセージをリセット
-              hideErrorMessage();
-
-              // 現在地が選択された場合
-              selectedLocation = locationId;
-              updateButtonStyle(this, true);
-              getCurrentPosition();
-            });
-          });
-
-          // 次へボタンのクリック処理
-          nextBtn.addEventListener('click', function() {
-            if (this.disabled) return;
-
-            // 選択データを保存
-            const data = {
-              type: selectedLocation,
-              position: currentPosition
-            };
-            sessionStorage.setItem('userLocation', JSON.stringify(data));
-
-            // 次のページへ遷移
-            window.location.href = '/select-category';
-          });
-        })();
-      `}} />
+      {/* JavaScript（外部ファイル） */}
+      <script src="/static/select-location.js"></script>
     </div>
   )
 }
