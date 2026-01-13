@@ -10,8 +10,9 @@ export const renderer = jsxRenderer(({ children }) => {
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet" />
         <link href="/static/style.css" rel="stylesheet" />
+        <style dangerouslySetInnerHTML={{ __html: `.font-maru { font-family: 'Zen Maru Gothic', sans-serif; }` }} />
       </head>
-      <body>{children}</body>
+      <body class="font-maru">{children}</body>
     </html>
   )
 })
