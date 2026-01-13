@@ -4,11 +4,11 @@ import { Navigation } from '../components/Navigation'
 
 // 地点選択肢データ
 const locationOptions = [
-  { id: 'current', icon: '📍', label: '現在地' },
-  { id: 'map', icon: '🗺️', label: '地図から選ぶ' },
-  { id: 'address', icon: '🏠', label: '住所から選ぶ' },
-  { id: 'facility', icon: '🏢', label: '施設名から選ぶ' },
-  { id: 'all', icon: '🌍', label: '全域（場所を定めない）' },
+  { id: 'current', icon: '📍', label: '現在地', disabled: false },
+  { id: 'map', icon: '🗺️', label: '地図から選ぶ', disabled: false },
+  { id: 'address', icon: '🏠', label: '住所から選ぶ', disabled: false },
+  { id: 'facility', icon: '🏢', label: '施設名から選ぶ', disabled: false },
+  { id: 'all', icon: '🌍', label: '全域（場所を定めない）（準備中）', disabled: true },
 ]
 
 // インラインスクリプト（全ての機能を含む）
@@ -383,7 +383,12 @@ export const SelectLocationPage: FC = () => {
           <button
             type="button"
             data-location-id={option.id}
-            class="location-btn w-full py-4 px-6 bg-white rounded-xl shadow-md text-gray-700 font-medium text-left hover:bg-purple-50 active:bg-purple-100 transition-all duration-200 border-2 border-transparent flex items-center gap-3"
+            disabled={option.disabled}
+            class={`location-btn w-full py-4 px-6 rounded-xl shadow-md font-medium text-left transition-all duration-200 border-2 flex items-center gap-3 ${
+              option.disabled 
+                ? 'bg-gray-100 text-gray-400 border-transparent cursor-not-allowed opacity-60' 
+                : 'bg-white text-gray-700 border-transparent hover:bg-purple-50 active:bg-purple-100'
+            }`}
           >
             <span class="text-xl">{option.icon}</span>
             <span>{option.label}</span>
