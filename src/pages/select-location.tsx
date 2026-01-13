@@ -50,6 +50,17 @@ export const SelectLocationPage: FC = () => {
         <div id="map" class="w-full h-48 rounded-xl shadow-md z-0"></div>
       </div>
 
+      {/* GPSエラー時のメッセージ（初期は非表示） */}
+      <div id="gps-error-message" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+        <p class="text-sm text-red-600 flex items-start gap-2">
+          <span>⚠️</span>
+          <span>
+            スマホの位置情報を許可してください。<br />
+            もしくは、現在地以外を選択してください。
+          </span>
+        </p>
+      </div>
+
       {/* 注釈 */}
       <div class="mt-4 p-4 bg-white/50 rounded-xl flex-1">
         <p class="text-sm text-gray-600 flex items-start gap-2">
@@ -76,6 +87,7 @@ export const SelectLocationPage: FC = () => {
           const nextBtn = document.getElementById('next-btn');
           const mapContainer = document.getElementById('map-container');
           const gpsStatus = document.getElementById('gps-status');
+          const gpsErrorMessage = document.getElementById('gps-error-message');
 
           // 選択状態の更新
           function updateSelection() {
@@ -123,6 +135,16 @@ export const SelectLocationPage: FC = () => {
             mapContainer.classList.add('hidden');
           }
 
+          // エラーメッセージを表示
+          function showErrorMessage() {
+            gpsErrorMessage.classList.remove('hidden');
+          }
+
+          // エラーメッセージを非表示
+          function hideErrorMessage() {
+            gpsErrorMessage.classList.add('hidden');
+          }
+
           // GPS取得
           function getCurrentPosition() {
             gpsStatus.textContent = '取得中...';
@@ -132,6 +154,9 @@ export const SelectLocationPage: FC = () => {
             if (!navigator.geolocation) {
               gpsStatus.textContent = '非対応';
               gpsStatus.classList.add('text-red-500');
+              showErrorMessage();
+              selectedLocation = null;
+              updateSelection();
               return;
             }
 
@@ -166,6 +191,7 @@ export const SelectLocationPage: FC = () => {
                 gpsStatus.textContent = message;
                 gpsStatus.classList.remove('text-gray-400');
                 gpsStatus.classList.add('text-red-500');
+                showErrorMessage();
                 selectedLocation = null;
                 updateSelection();
               },
@@ -189,6 +215,7 @@ export const SelectLocationPage: FC = () => {
               // 現在地以外が選択された場合
               if (locationId !== 'current') {
                 hideMap();
+                hideErrorMessage();
                 gpsStatus.textContent = '';
                 currentPosition = null;
                 selectedLocation = locationId;
@@ -196,6 +223,9 @@ export const SelectLocationPage: FC = () => {
                 updateSelection();
                 return;
               }
+
+              // 現在地選択時はエラーメッセージをリセット
+              hideErrorMessage();
 
               // 現在地が選択された場合
               selectedLocation = locationId;
