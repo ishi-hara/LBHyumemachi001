@@ -4,9 +4,9 @@ import type { FC } from 'hono/jsx'
 export const TopPage: FC = () => {
   return (
     <div class="min-h-screen bg-gradient-to-b from-pink-100 via-purple-100 to-blue-100 flex flex-col items-center justify-center p-6 font-maru relative">
-      {/* 画面名（右端に縦書き） */}
-      <div class="absolute right-1 top-1/2 transform -translate-y-1/2">
-        <p class="text-xs text-gray-400 writing-mode-vertical">トップ画面</p>
+      {/* 画面名（右上） */}
+      <div class="absolute right-2 top-2">
+        <p class="text-xs text-gray-400">トップ画面</p>
       </div>
 
       {/* デコレーション - 星 */}
@@ -50,13 +50,7 @@ export const TopPage: FC = () => {
         <span>🏡</span>
       </div>
 
-      {/* 縦書き用スタイル */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        .writing-mode-vertical {
-          writing-mode: vertical-rl;
-          text-orientation: mixed;
-        }
-      `}} />
+
     </div>
   )
 }
