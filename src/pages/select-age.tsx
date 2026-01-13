@@ -1,5 +1,6 @@
 // ユーザ情報画面 - 年齢層選択
 import type { FC } from 'hono/jsx'
+import { Navigation } from '../components/Navigation'
 
 // 年齢層データ
 const ageGroups = [
@@ -55,17 +56,8 @@ export const SelectAgePage: FC = () => {
         </p>
       </div>
 
-      {/* 次へボタン */}
-      <div class="mt-6 pb-4">
-        <button
-          type="button"
-          id="next-btn"
-          class="w-full py-4 bg-gradient-to-r from-pink-400 to-purple-500 text-white text-xl font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:transform-none"
-          disabled
-        >
-          次へ
-        </button>
-      </div>
+      {/* ナビゲーション */}
+      <Navigation backHref="/" nextDisabled={true} />
 
       {/* JavaScript */}
       <script dangerouslySetInnerHTML={{ __html: `
