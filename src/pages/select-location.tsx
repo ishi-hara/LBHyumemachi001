@@ -50,6 +50,28 @@ export const SelectLocationPage: FC = () => {
         <div id="map" class="w-full h-56 rounded-xl shadow-md z-0"></div>
       </div>
 
+      {/* 住所選択エリア（初期は非表示） */}
+      <div id="address-container" class="hidden mt-4 flex flex-col gap-3">
+        <button
+          type="button"
+          data-address-id="kawanishi-noseguchi"
+          class="address-btn w-full py-3 px-4 bg-white rounded-xl shadow-md text-gray-700 text-left hover:bg-purple-50 active:bg-purple-100 transition-all duration-200 border-2 border-transparent"
+        >
+          <p class="text-sm text-purple-600 font-medium">〒666-0033</p>
+          <p class="text-sm">兵庫県川西市栄町20-1</p>
+          <p class="text-xs text-gray-500 mt-1">（川西能勢口前ロータリー）</p>
+        </button>
+        <button
+          type="button"
+          data-address-id="tada-shrine"
+          class="address-btn w-full py-3 px-4 bg-white rounded-xl shadow-md text-gray-700 text-left hover:bg-purple-50 active:bg-purple-100 transition-all duration-200 border-2 border-transparent"
+        >
+          <p class="text-sm text-purple-600 font-medium">〒666-0251</p>
+          <p class="text-sm">兵庫県川辺郡猪名川町多田</p>
+          <p class="text-xs text-gray-500 mt-1">（多田神社前猪名川渓流）</p>
+        </button>
+      </div>
+
       {/* 選択された場所の表示（初期は非表示） */}
       <div id="selected-place-info" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
         <p class="text-sm text-green-700 flex items-center gap-2">

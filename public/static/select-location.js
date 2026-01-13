@@ -11,20 +11,24 @@
     {
       id: 'kawanishi-noseguchi',
       name: '川西能勢口前ロータリー',
+      address: '〒666-0033 兵庫県川西市栄町20-1',
       lat: 34.8267,
       lng: 135.4158
     },
     {
       id: 'tada-shrine',
       name: '多田神社前猪名川渓流',
+      address: '〒666-0251 兵庫県川辺郡猪名川町多田',
       lat: 34.8589,
       lng: 135.3856
     }
   ];
 
   const locationBtns = document.querySelectorAll('.location-btn');
+  const addressBtns = document.querySelectorAll('.address-btn');
   const nextBtn = document.getElementById('next-btn');
   const mapContainer = document.getElementById('map-container');
+  const addressContainer = document.getElementById('address-container');
   const gpsStatus = document.getElementById('gps-status');
   const gpsErrorMessage = document.getElementById('gps-error-message');
   const selectedPlaceInfo = document.getElementById('selected-place-info');
@@ -32,16 +36,11 @@
 
   // 選択状態の更新
   function updateSelection() {
-    // 現在地の場合はcurrentPositionが必要
     if (selectedLocation === 'current') {
       nextBtn.disabled = !currentPosition;
-    }
-    // 地図から選ぶの場合はselectedPlaceが必要
-    else if (selectedLocation === 'map') {
+    } else if (selectedLocation === 'map' || selectedLocation === 'address') {
       nextBtn.disabled = !selectedPlace;
-    }
-    // その他は選択されていればOK
-    else {
+    } else {
       nextBtn.disabled = !selectedLocation;
     }
   }
@@ -100,7 +99,6 @@
         map = null;
       }
       
-      // 2箇所の中間地点を中心に
       const centerLat = (kawanishiSpots[0].lat + kawanishiSpots[1].lat) / 2;
       const centerLng = (kawanishiSpots[0].lng + kawanishiSpots[1].lng) / 2;
       
@@ -109,7 +107,6 @@
         attribution: '© OpenStreetMap'
       }).addTo(map);
       
-      // 各スポットにマーカーを追加
       kawanishiSpots.forEach(spot => {
         const marker = L.marker([spot.lat, spot.lng]).addTo(map);
         marker.bindPopup(
@@ -123,6 +120,20 @@
         markers.push(marker);
       });
     }, 100);
+  }
+
+  // 住所選択エリアを表示
+  function showAddressSelection() {
+    addressContainer.classList.remove('hidden');
+    selectedPlace = null;
+    hideSelectedPlaceInfo();
+    // 住所ボタンの選択状態をリセット
+    addressBtns.forEach(b => updateButtonStyle(b, false));
+  }
+
+  // 住所選択エリアを非表示
+  function hideAddressSelection() {
+    addressContainer.classList.add('hidden');
   }
 
   // 選択された場所の情報を表示
@@ -148,9 +159,7 @@
       currentPosition = { lat: spot.lat, lng: spot.lng };
       showSelectedPlaceInfo(spot.name);
       updateSelection();
-      
-      // ポップアップを閉じる
-      map.closePopup();
+      if (map) map.closePopup();
     }
   };
 
@@ -191,7 +200,6 @@
     }
 
     navigator.geolocation.getCurrentPosition(
-      // 成功
       (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
@@ -204,7 +212,6 @@
         showCurrentLocationMap(lat, lng);
         updateSelection();
       },
-      // エラー
       (error) => {
         let message = 'エラー';
         switch(error.code) {
@@ -225,7 +232,6 @@
         selectedLocation = null;
         updateSelection();
       },
-      // オプション
       {
         enableHighAccuracy: true,
         timeout: 10000,
@@ -247,6 +253,7 @@
       // 現在地が選択された場合
       if (locationId === 'current') {
         hideMap();
+        hideAddressSelection();
         selectedPlace = null;
         currentPosition = null;
         selectedLocation = locationId;
@@ -257,6 +264,7 @@
       
       // 地図から選ぶが選択された場合
       if (locationId === 'map') {
+        hideAddressSelection();
         selectedPlace = null;
         currentPosition = null;
         selectedLocation = locationId;
@@ -265,9 +273,22 @@
         updateSelection();
         return;
       }
+
+      // 住所から選ぶが選択された場合
+      if (locationId === 'address') {
+        hideMap();
+        selectedPlace = null;
+        currentPosition = null;
+        selectedLocation = locationId;
+        updateButtonStyle(this, true);
+        showAddressSelection();
+        updateSelection();
+        return;
+      }
       
       // その他が選択された場合
       hideMap();
+      hideAddressSelection();
       selectedPlace = null;
       currentPosition = null;
       selectedLocation = locationId;
@@ -276,11 +297,29 @@
     });
   });
 
+  // 住所ボタンのクリック処理
+  addressBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const addressId = this.dataset.addressId;
+      const spot = kawanishiSpots.find(s => s.id === addressId);
+      
+      if (spot) {
+        // 住所ボタンの選択状態を更新
+        addressBtns.forEach(b => updateButtonStyle(b, false));
+        updateButtonStyle(this, true);
+        
+        selectedPlace = spot;
+        currentPosition = { lat: spot.lat, lng: spot.lng };
+        showSelectedPlaceInfo(spot.name);
+        updateSelection();
+      }
+    });
+  });
+
   // 次へボタンのクリック処理
   nextBtn.addEventListener('click', function() {
     if (this.disabled) return;
 
-    // 選択データを保存
     const data = {
       type: selectedLocation,
       position: currentPosition,
@@ -288,7 +327,6 @@
     };
     sessionStorage.setItem('userLocation', JSON.stringify(data));
 
-    // 次のページへ遷移
     window.location.href = '/select-category';
   });
 })();
