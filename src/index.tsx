@@ -6,6 +6,7 @@ import { SelectAgePage } from './pages/select-age'
 import { SelectLocationPage } from './pages/select-location'
 import { SearchFacilityPage } from './pages/search-facility'
 import { SelectCategoryPage } from './pages/select-category'
+import { SelectBuildingTypePage } from './pages/select-building-type'
 
 const app = new Hono()
 
@@ -34,6 +35,11 @@ app.get('/search-facility', (c) => {
 // ゆめまち提案種類画面
 app.get('/select-category', (c) => {
   return c.render(<SelectCategoryPage />)
+})
+
+// 建物・施設系画面
+app.get('/select-building-type', (c) => {
+  return c.render(<SelectBuildingTypePage />)
 })
 
 // 生成モード画面（プレースホルダー）

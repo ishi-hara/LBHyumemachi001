@@ -59,7 +59,23 @@ const inlineScript = `
       sessionStorage.setItem('userCategory', JSON.stringify({
         category: selectedCategory
       }));
-      window.location.href = '/select-mode';
+      
+      // カテゴリに応じて遷移先を分岐
+      switch(selectedCategory) {
+        case 'building':
+          window.location.href = '/select-building-type';
+          break;
+        case 'space':
+          // 広場・空間系画面（準備中）
+          window.location.href = '/select-mode';
+          break;
+        case 'road':
+          // 道路・区間系画面（準備中）
+          window.location.href = '/select-mode';
+          break;
+        default:
+          window.location.href = '/select-mode';
+      }
     });
   }
 
