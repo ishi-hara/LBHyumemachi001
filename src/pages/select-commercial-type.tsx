@@ -113,7 +113,16 @@ const inlineScript = `
       }
       
       sessionStorage.setItem('userCommercialType', JSON.stringify(data));
-      window.location.href = '/select-mode';
+      
+      // タイプに応じて遷移先を分岐
+      switch(selectedType) {
+        case 'cafe':
+          window.location.href = '/select-cafe-view';
+          break;
+        default:
+          // その他の詳細画面は準備中
+          window.location.href = '/select-mode';
+      }
     });
   }
 
