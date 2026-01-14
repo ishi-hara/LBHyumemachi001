@@ -7,6 +7,7 @@ import { SelectLocationPage } from './pages/select-location'
 import { SearchFacilityPage } from './pages/search-facility'
 import { SelectCategoryPage } from './pages/select-category'
 import { SelectBuildingTypePage } from './pages/select-building-type'
+import { SelectCommercialTypePage } from './pages/select-commercial-type'
 
 const app = new Hono()
 
@@ -40,6 +41,11 @@ app.get('/select-category', (c) => {
 // 建物・施設系画面
 app.get('/select-building-type', (c) => {
   return c.render(<SelectBuildingTypePage />)
+})
+
+// 商業・ビジネス施設画面
+app.get('/select-commercial-type', (c) => {
+  return c.render(<SelectCommercialTypePage />)
 })
 
 // 生成モード画面（プレースホルダー）

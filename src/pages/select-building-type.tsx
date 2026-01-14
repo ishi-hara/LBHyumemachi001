@@ -64,7 +64,16 @@ const inlineScript = `
       sessionStorage.setItem('userBuildingType', JSON.stringify({
         buildingType: selectedType
       }));
-      window.location.href = '/select-mode';
+      
+      // タイプに応じて遷移先を分岐
+      switch(selectedType) {
+        case 'commercial':
+          window.location.href = '/select-commercial-type';
+          break;
+        default:
+          // その他の詳細画面は準備中
+          window.location.href = '/select-mode';
+      }
     });
   }
 
