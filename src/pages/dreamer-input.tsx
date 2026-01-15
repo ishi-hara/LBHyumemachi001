@@ -7,6 +7,63 @@ export const DreamerInputPage: FC = () => {
       var dreamInput = document.getElementById('dream-input');
       var charCount = document.getElementById('char-count');
       var nextBtn = document.getElementById('next-btn');
+      var facilityNameEl = document.getElementById('facility-name');
+      var viewTypeEl = document.getElementById('view-type');
+
+      // 商業・ビジネス施設の選択情報を取得
+      var commercialTypeLabels = {
+        'cafe': 'カフェ',
+        'restaurant': 'レストラン',
+        'bakery': 'ベーカリー',
+        'bookstore': '書店',
+        'zakka': '雑貨店',
+        'apparel': 'アパレルショップ',
+        'convenience': 'コンビニエンスストア',
+        'supermarket': 'スーパーマーケット',
+        'mall': 'ショッピングモール',
+        'office': 'オフィスビル',
+        'coworking': 'コワーキングスペース'
+      };
+
+      // 外観/内観のラベル
+      var viewTypeLabels = {
+        'exterior': '外観',
+        'interior': '内観',
+        'both': '両方'
+      };
+
+      // sessionStorageから値を取得して表示を更新
+      function updateDynamicText() {
+        var facilityName = 'カフェ'; // デフォルト値
+        var viewType = '外観'; // デフォルト値
+
+        // 商業・ビジネス施設の選択を取得
+        var commercialData = sessionStorage.getItem('userCommercialType');
+        if (commercialData) {
+          var parsed = JSON.parse(commercialData);
+          if (parsed.commercialType === 'other' && parsed.otherText) {
+            facilityName = parsed.otherText;
+          } else if (commercialTypeLabels[parsed.commercialType]) {
+            facilityName = commercialTypeLabels[parsed.commercialType];
+          }
+        }
+
+        // 外観/内観の選択を取得
+        var viewData = sessionStorage.getItem('userCafeView');
+        if (viewData) {
+          var parsedView = JSON.parse(viewData);
+          if (viewTypeLabels[parsedView.cafeView]) {
+            viewType = viewTypeLabels[parsedView.cafeView];
+          }
+        }
+
+        // 表示を更新
+        if (facilityNameEl) facilityNameEl.textContent = facilityName;
+        if (viewTypeEl) viewTypeEl.textContent = viewType;
+      }
+
+      // 動的テキストを更新
+      updateDynamicText();
 
       function updateCharCount() {
         var length = dreamInput.value.length;
@@ -77,7 +134,7 @@ export const DreamerInputPage: FC = () => {
         {/* 説明文 */}
         <div class="bg-white rounded-xl shadow-md p-4 mb-6">
           <p class="text-lg text-gray-700 leading-relaxed">
-            あなたの夢のカフェ（外観）について、<br />
+            あなたの夢の<span id="facility-name" class="font-bold text-purple-600">カフェ</span>（<span id="view-type" class="font-bold text-purple-600">外観</span>）について、<br />
             自由に教えてください！<span class="text-xl">✨</span>
           </p>
           <p class="text-sm text-gray-500 mt-3">
