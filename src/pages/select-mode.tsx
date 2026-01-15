@@ -90,8 +90,14 @@ export const SelectModePage: FC = () => {
       nextBtn.addEventListener('click', function() {
         if (!nextBtn.disabled && selectedMode) {
           sessionStorage.setItem('userMode', JSON.stringify({ mode: selectedMode }));
-          // 遷移先は別途指示（現時点は仮のパス）
-          window.location.href = '/generate';
+          // モードに応じて遷移先を切り替え
+          if (selectedMode === 'dreamer') {
+            window.location.href = '/dreamer-input';
+          } else if (selectedMode === 'arranger') {
+            window.location.href = '/arranger-input';
+          } else {
+            window.location.href = '/generate';
+          }
         }
       });
 
