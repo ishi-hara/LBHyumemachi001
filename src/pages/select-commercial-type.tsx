@@ -114,15 +114,8 @@ const inlineScript = `
       
       sessionStorage.setItem('userCommercialType', JSON.stringify(data));
       
-      // タイプに応じて遷移先を分岐
-      switch(selectedType) {
-        case 'cafe':
-          window.location.href = '/select-cafe-view';
-          break;
-        default:
-          // その他の詳細画面は準備中
-          window.location.href = '/select-mode';
-      }
+      // すべての項目で外観・内観選択画面へ遷移
+      window.location.href = '/select-cafe-view';
     });
   }
 
