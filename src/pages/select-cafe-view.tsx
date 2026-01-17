@@ -86,7 +86,7 @@ export const SelectCafeViewPage: FC = () => {
 
       {/* 質問文 */}
       <p class="text-lg text-gray-700 mb-6 text-center">
-        カフェの外観と内観、どちらを提案しますか？
+        外観と内観、両方どれを提案しますか？
       </p>
 
       {/* ビュー選択ボタン */}
