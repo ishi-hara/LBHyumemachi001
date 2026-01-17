@@ -11,6 +11,7 @@ import { SelectCommercialTypePage } from './pages/select-commercial-type'
 import { SelectCafeViewPage } from './pages/select-cafe-view'
 import { SelectModePage } from './pages/select-mode'
 import { DreamerInputPage } from './pages/dreamer-input'
+import { DreamerConfirmPage } from './pages/dreamer-confirm'
 
 const app = new Hono()
 
@@ -64,6 +65,11 @@ app.get('/select-mode', (c) => {
 // お任せドリーマー選択画面
 app.get('/dreamer-input', (c) => {
   return c.render(<DreamerInputPage />)
+})
+
+// お任せドリーマー生成確認画面
+app.get('/dreamer-confirm', (c) => {
+  return c.render(<DreamerConfirmPage />)
 })
 
 // ちょい足しアレンジャー画面（プレースホルダー）

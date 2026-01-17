@@ -105,8 +105,8 @@ export const DreamerInputPage: FC = () => {
             dream: dreamInput.value.trim(),
             mode: 'dreamer'
           }));
-          // 遷移先は別途指示（現時点は仮のパス）
-          window.location.href = '/generate-result';
+          // お任せドリーマー生成確認画面へ遷移
+          window.location.href = '/dreamer-confirm';
         }
       });
 
