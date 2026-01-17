@@ -1,4 +1,4 @@
-// カフェ選択画面
+// 外観・内観選択画面
 import type { FC } from 'hono/jsx'
 import { Navigation } from '../components/Navigation'
 
@@ -73,7 +73,7 @@ export const SelectCafeViewPage: FC = () => {
     <div class="min-h-screen bg-gradient-to-b from-pink-100 via-purple-100 to-blue-100 flex flex-col p-6 font-maru relative">
       {/* 画面名（右上） */}
       <div class="absolute right-2 top-2">
-        <p class="text-xs text-gray-400">カフェ選択画面</p>
+        <p class="text-xs text-gray-400">外観・内観選択画面</p>
       </div>
 
       {/* ヘッダー */}
