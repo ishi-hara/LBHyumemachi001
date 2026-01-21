@@ -12,8 +12,14 @@ import { SelectCafeViewPage } from './pages/select-cafe-view'
 import { SelectModePage } from './pages/select-mode'
 import { DreamerInputPage } from './pages/dreamer-input'
 import { DreamerConfirmPage } from './pages/dreamer-confirm'
+import { ImageSelectPage } from './pages/image-select'
 
-const app = new Hono()
+// 環境変数の型定義
+type Bindings = {
+  FAL_API_KEY: string
+}
+
+const app = new Hono<{ Bindings: Bindings }>()
 
 app.use(renderer)
 
@@ -71,6 +77,82 @@ app.get('/dreamer-input', (c) => {
 app.get('/dreamer-confirm', (c) => {
   return c.render(<DreamerConfirmPage />)
 })
+
+// 範囲指定画面
+app.get('/image-select', (c) => {
+  return c.render(<ImageSelectPage />)
+})
+
+// 画像生成API
+app.post('/api/generate-image', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { dream, facilityType, viewType, maskImage, baseImagePath } = body
+
+    // fal.ai APIキーを取得
+    const falApiKey = c.env?.FAL_API_KEY || ''
+    
+    if (!falApiKey) {
+      return c.json({ success: false, error: 'API key not configured' }, 500)
+    }
+
+    // プロンプトを生成
+    const prompt = generatePrompt(dream, facilityType, viewType)
+
+    // 元画像のURLを構築
+    const baseUrl = new URL(c.req.url).origin
+    const imageUrl = baseUrl + baseImagePath
+
+    // fal.ai SDXL Inpainting APIを呼び出し
+    const falResponse = await fetch('https://fal.run/fal-ai/sdxl-inpainting', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Key ' + falApiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        image_url: imageUrl,
+        mask_url: maskImage,
+        prompt: prompt,
+        negative_prompt: 'low quality, blurry, distorted, ugly, bad anatomy',
+        num_inference_steps: 30,
+        guidance_scale: 7.5,
+        strength: 0.85
+      })
+    })
+
+    if (!falResponse.ok) {
+      const errorText = await falResponse.text()
+      console.error('fal.ai API error:', errorText)
+      return c.json({ success: false, error: 'Image generation failed' }, 500)
+    }
+
+    const falResult = await falResponse.json() as { images?: { url: string }[] }
+
+    if (falResult.images && falResult.images.length > 0) {
+      return c.json({ 
+        success: true, 
+        imageUrl: falResult.images[0].url 
+      })
+    } else {
+      return c.json({ success: false, error: 'No image generated' }, 500)
+    }
+
+  } catch (error) {
+    console.error('Generate image error:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+// プロンプト生成関数
+function generatePrompt(dream: string, facilityType: string, viewType: string): string {
+  // ユーザーの夢の内容を元にプロンプトを生成
+  const basePrompt = 'A beautiful ' + viewType + ' of a ' + facilityType + ' in Japan, '
+  const dreamPrompt = dream ? dream + ', ' : ''
+  const stylePrompt = 'high quality, detailed architecture, photorealistic, professional photography, natural lighting, urban environment'
+  
+  return basePrompt + dreamPrompt + stylePrompt
+}
 
 // ちょい足しアレンジャー画面（プレースホルダー）
 app.get('/arranger-input', (c) => {

@@ -158,8 +158,8 @@ export const DreamerConfirmPage: FC = () => {
       // 生成ボタンのクリック処理
       if (generateBtn) {
         generateBtn.addEventListener('click', function() {
-          // 遷移先は別途指示（現時点は仮のパス）
-          window.location.href = '/generate-result';
+          // 範囲指定画面へ遷移
+          window.location.href = '/image-select';
         });
       }
 
