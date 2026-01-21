@@ -1,27 +1,22 @@
-# Dependencies
-node_modules/
 
 # Build output
-dist/
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# dotenv environment variables file
-.env
-.dev.vars
-
-# Wrangler
-.wrangler/
-
-# PM2
-.pm2/
-logs/
-*.log
-
+# Dependencies
 # OS files
+# PM2
+# Runtime data
+# Wrangler
+# dotenv environment variables file
+*.log
+*.pid
+*.pid.lock
+*.seed
 .DS_Store
+.dev.vars
+.env
+.pm2/
+.wrangler/
 Thumbs.db
+dist/
+logs/
+node_modules/
+pids
