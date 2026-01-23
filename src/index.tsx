@@ -87,47 +87,51 @@ app.get('/image-select', (c) => {
 app.post('/api/generate-image', async (c) => {
   try {
     const body = await c.req.json()
-    const { dream, facilityType, viewType, maskImage, baseImagePath } = body
+    const { dream, facilityType, viewType, maskImage, baseImage } = body
 
     // fal.ai APIキーを取得
     const falApiKey = c.env?.FAL_API_KEY || ''
     
     if (!falApiKey) {
+      console.error('FAL_API_KEY not configured')
       return c.json({ success: false, error: 'API key not configured' }, 500)
     }
 
     // プロンプトを生成
     const prompt = generatePrompt(dream, facilityType, viewType)
+    console.log('Generated prompt:', prompt)
 
-    // 元画像のURLを構築
-    const baseUrl = new URL(c.req.url).origin
-    const imageUrl = baseUrl + baseImagePath
+    // fal.ai Inpainting APIを呼び出し
+    // base64データURLをそのまま送信
+    const requestBody = {
+      model_name: 'stabilityai/stable-diffusion-xl-base-1.0',  // 必須パラメータ
+      image_url: baseImage,  // base64 data URL
+      mask_url: maskImage,   // base64 data URL
+      prompt: prompt,
+      negative_prompt: 'low quality, blurry, distorted, ugly, bad anatomy, deformed',
+      num_inference_steps: 25,
+      guidance_scale: 7.5,
+      strength: 0.85
+    }
 
-    // fal.ai SDXL Inpainting APIを呼び出し
-    const falResponse = await fetch('https://fal.run/fal-ai/sdxl-inpainting', {
+    console.log('Calling fal.ai API...')
+    const falResponse = await fetch('https://fal.run/fal-ai/inpaint', {
       method: 'POST',
       headers: {
         'Authorization': 'Key ' + falApiKey,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        image_url: imageUrl,
-        mask_url: maskImage,
-        prompt: prompt,
-        negative_prompt: 'low quality, blurry, distorted, ugly, bad anatomy',
-        num_inference_steps: 30,
-        guidance_scale: 7.5,
-        strength: 0.85
-      })
+      body: JSON.stringify(requestBody)
     })
 
     if (!falResponse.ok) {
       const errorText = await falResponse.text()
-      console.error('fal.ai API error:', errorText)
-      return c.json({ success: false, error: 'Image generation failed' }, 500)
+      console.error('fal.ai API error:', falResponse.status, errorText)
+      return c.json({ success: false, error: 'Image generation failed: ' + errorText }, 500)
     }
 
     const falResult = await falResponse.json() as { images?: { url: string }[] }
+    console.log('fal.ai response:', JSON.stringify(falResult))
 
     if (falResult.images && falResult.images.length > 0) {
       return c.json({ 
@@ -140,7 +144,7 @@ app.post('/api/generate-image', async (c) => {
 
   } catch (error) {
     console.error('Generate image error:', error)
-    return c.json({ success: false, error: 'Internal server error' }, 500)
+    return c.json({ success: false, error: 'Internal server error: ' + String(error) }, 500)
   }
 })
 

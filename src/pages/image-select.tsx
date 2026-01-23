@@ -262,6 +262,18 @@ export const ImageSelectPage: FC = () => {
         window.location.href = '/';
       });
 
+      // 元画像をbase64に変換
+      function getBaseImageAsDataUrl() {
+        return new Promise(function(resolve) {
+          var tempCanvas = document.createElement('canvas');
+          tempCanvas.width = baseImage.naturalWidth;
+          tempCanvas.height = baseImage.naturalHeight;
+          var tempCtx = tempCanvas.getContext('2d');
+          tempCtx.drawImage(baseImage, 0, 0);
+          resolve(tempCanvas.toDataURL('image/png'));
+        });
+      }
+
       // API呼び出し
       function callGenerateAPI() {
         // sessionStorageから夢の内容を取得
@@ -274,14 +286,14 @@ export const ImageSelectPage: FC = () => {
 
         // 商業タイプを取得
         var commercialData = sessionStorage.getItem('userCommercialType');
-        var facilityType = 'カフェ';
+        var facilityType = 'cafe';
         if (commercialData) {
           var parsed = JSON.parse(commercialData);
           var labels = {
-            'cafe': 'カフェ', 'restaurant': 'レストラン', 'bakery': 'ベーカリー',
-            'bookstore': '書店', 'zakka': '雑貨店', 'apparel': 'アパレルショップ',
-            'convenience': 'コンビニ', 'supermarket': 'スーパー', 'mall': 'ショッピングモール',
-            'office': 'オフィスビル', 'coworking': 'コワーキングスペース'
+            'cafe': 'cafe', 'restaurant': 'restaurant', 'bakery': 'bakery',
+            'bookstore': 'bookstore', 'zakka': 'variety store', 'apparel': 'apparel shop',
+            'convenience': 'convenience store', 'supermarket': 'supermarket', 'mall': 'shopping mall',
+            'office': 'office building', 'coworking': 'coworking space'
           };
           if (parsed.commercialType === 'other' && parsed.otherText) {
             facilityType = parsed.otherText;
@@ -292,42 +304,45 @@ export const ImageSelectPage: FC = () => {
 
         // 外観/内観を取得
         var viewData = sessionStorage.getItem('userCafeView');
-        var viewType = '外観';
+        var viewType = 'exterior';
         if (viewData) {
           var parsed = JSON.parse(viewData);
-          var viewLabels = { 'exterior': '外観', 'interior': '内観', 'both': '外観と内観' };
+          var viewLabels = { 'exterior': 'exterior', 'interior': 'interior', 'both': 'exterior and interior' };
           viewType = viewLabels[parsed.cafeView] || viewType;
         }
 
-        // APIリクエスト
-        fetch('/api/generate-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            dream: dream,
-            facilityType: facilityType,
-            viewType: viewType,
-            maskImage: maskDataUrl,
-            baseImagePath: '/images/01-001-EkimaeRotary.png'
+        // 元画像をbase64に変換してAPIリクエスト
+        getBaseImageAsDataUrl().then(function(baseImageDataUrl) {
+          console.log('Sending API request...');
+          fetch('/api/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              dream: dream,
+              facilityType: facilityType,
+              viewType: viewType,
+              maskImage: maskDataUrl,
+              baseImage: baseImageDataUrl
+            })
           })
-        })
-        .then(function(response) {
-          if (!response.ok) throw new Error('API Error');
-          return response.json();
-        })
-        .then(function(data) {
-          if (data.success && data.imageUrl) {
-            resultImage.src = data.imageUrl;
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(data) {
+            if (data.success && data.imageUrl) {
+              resultImage.src = data.imageUrl;
+              loadingArea.classList.add('hidden');
+              resultArea.classList.remove('hidden');
+            } else {
+              console.error('API error:', data.error);
+              throw new Error(data.error || 'Generation failed');
+            }
+          })
+          .catch(function(error) {
+            console.error('Error:', error);
             loadingArea.classList.add('hidden');
-            resultArea.classList.remove('hidden');
-          } else {
-            throw new Error(data.error || 'Generation failed');
-          }
-        })
-        .catch(function(error) {
-          console.error('Error:', error);
-          loadingArea.classList.add('hidden');
-          errorArea.classList.remove('hidden');
+            errorArea.classList.remove('hidden');
+          });
         });
       }
 

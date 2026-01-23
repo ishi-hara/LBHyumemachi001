@@ -5,10 +5,11 @@
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
     "nodejs_compat"
-  ]
-  // "vars": {
-  //   "MY_VAR": "my-variable"
-  // },
+  ],
+  "vars": {
+    "FAL_API_KEY": "02233877-8d91-4e3e-bee8-fd81f0ae09fb:df5fe4cc045f0cbf135d73e4c32d667e"
+  }
+  //
   // "kv_namespaces": [
   //   {
   //     "binding": "MY_KV_NAMESPACE",
